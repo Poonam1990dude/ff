@@ -1,0 +1,413 @@
+
+To Create User & Assign Roles To User:
+
+db.createUser(
+  {
+    user: "admin",
+    pwd: "cool@123",
+    roles: [ 
+             { role: "userAdminAnyDatabase", db: "admin" },
+             { role: "readWriteAnyDatabase", db: "admin" },
+             { role: "clusterAdmin", db: "admin" }
+           ],
+  }
+);
+
+---------------------------------------------------------------------------------------
+To View User Info & Privilages:
+
+db.runCommand(
+               {
+                 usersInfo:  { user: "admin", db: "admin" },
+                 showPrivileges: true
+               }
+);
+---------------------------------------------------------------------------------------
+To View Multiple Users Info & Privilages:
+
+db.runCommand( 
+	       { usersInfo: [ { user: "admin", db: "admin" },
+	       { user: "root", db: "admin" } ],
+                 showPrivileges: true
+             }
+);
+--------------------------------------------------------------------------------------------
+To View Role Info & Privilage:
+
+db.getRole( "RoleName", { showPrivileges: true } )
+
+Example:
+db.getRole( "read", { showPrivileges: true } )
+
+----------------------------------------------------------------------------------------
+To Drop/Remove Users: (Ensure that you've Privilage to run this command)
+
+db.dropUser("<user name>");
+
+----------------------------------------------------------------------------------------
+For Drop/Remove All Usersin DB:
+
+db.runCommand( { dropAllUsersFromDatabase: 1, writeConcern: { w: "majority" } } );
+
+----------------------------------------------------------------------------------------
+Roles Grant To Existing User:
+
+db.grantRolesToUser("<User Name>", roles:[ { role: "read", db: "stock"} ] );
+
+-----------------------------------------------------------------------------------------
+To Change The Password of Existing User:
+
+db.changeUserPassword("admin", "Alpha@123");
+
+-------------------------------------------------------------------------------------------------
+To Create DB:
+
+use dbName
+
+--------------------------------------------------------------------------------------------------
+To Create Collection:
+
+db.createCollection("CollectionName");
+
+Note: First Switch To DB by using use command
+
+---------------------------------------------------------------------------------------------------------------
+To View Collection List:
+
+show collections
+
+Note: First Switch To DB by using use command
+
+-------------------------------------------------------------------------------------------------
+MongoDB Backup Method:
+1. MongoExport (Use Import command to restore data)
+2. MongoDump (Use Restore Command to restore data)
+
+To Export MongoDB Data: (mongoexport command is correspondent to mongoimport command)
+
+C:\<mongodb bin file path>mongoexport -u "UserName" -p PASSWORD -d DatabaseName -c CollectionName -o C:\<Path For MongoDB Backup folder and file name>File.json
+
+MongoDB Backup using mongodump command:
+
+C:\<mongodb bin file path>mongodump (This command use mongodb bin path for backup)
+
+OR 
+
+C:\<mongodb bin file path>mongodump -o C:\<Path For MongoDB Backup folder and fileName.bson>
+
+To Take MongoDB Full Database Backup:
+mongodump -h 192.168.1.239:27017 -u "admin" -p cool@123 --out C:\dump
+---------------------------------------------------------------------------------------------------------------------------------------------------------------
+MongoDB Restore Method:
+1. MongoImport
+2. MongoRestore
+
+To Import MongoDB Data: (mongoimport command is correspondent to mongoexport command)
+
+C:\<mongodb bin file path>mongoimport -u "UserName" -p PASSWORD -d DatabaseName -c CollectionName --file C:\<Path For MongoDB Restore file name>fileName.json
+
+To Restore MongoDb Data:
+
+C:\<mongodb bin file path>mongorestore -u "UserName" -p PASS@123 -d DBName -c CollectionName C:\<filePath.bson>
+----------------------------------------------------------------------------------------------------------------------------------------------------------------
+To Check Avtive IP Connections (Shows IP Address of Connections)
+
+db.currentOp(true).inprog.forEach(function(d){if(d.client && d.client!="0.0.0.0:0")printjson(d.client)})
+-------------------------------------------------------------------------------------------------------
+Connection maxConns
+
+mongod --fork = true --maxConns = 3700  --noauth = true --replSet = Prime --rest = true
+
+---------------------------------------------------------------------------------------------------------------------------------------------
+Add field from MongoDB Collection
+
+db.Document.updateMany( {}, { $set: { "documentCategory": "EIM" } } )
+
+db.CollectionName.updateMany( {}, { $set: { "Feild Name": "Field Value" } } )
+
+db.Candi_copy.updateMany({canId: 3473761},{$set : {"resume.linkedin": ""}})    ------------- On Behalf of Candiate ID canId
+
+----------------------------------------------------------------------------------------------------------------------------------------------
+Remove Field from MongoDB Collection
+
+db.Document.updateMany( {}, { $unset: { "FieldName": 1 } } )        -------------For Simple Field
+
+Example:
+db.Candi_copy.updateMany({},{$unset : {"resume.linkedin":1}})
+
+db.Document.updateMany( {}, { $unset: { "objectName.FieldName": 1 } } )        -------------For Array Field
+
+Example:
+db.Candi_copy.updateMany({},{ $unset : {"resume.linkedin": 1}})
+
+db.Candi_copy.updateMany({canId: 3473761},{$unset : {"resume.linkedin": ""}})           ------------- On Behalf of Candiate ID canId
+
+------------------------------------------------------------------------------------------------------------------------------------------------
+Rename Existing Field Name
+
+db.CollectionName.updateMany( {}, { $rename: { "Old Feild": "New Field" } } )
+
+db.Document.updateMany( {}, { $rename: { "documentCategory": "EIM" } } )
+
+-------------------------------------------------------------------------------------------------------------------------------------------
+Create Own/User Define Role in MongoDB
+
+use admin
+db.createRole(
+   {
+     role: "Role Name",
+     privileges: [
+       { resource: { db: "DB Name", collection: "" }, actions: [ "find", "update", "insert", "remove" ] },
+       { resource: { db: "users", collection: "usersCollection" }, actions: [ "update", "insert", "remove" ] },
+       { resource: { db: "", collection: "" }, actions: [ "find" ] }
+     ]});
+-------------------------OR--------------------------------------------------------------------------------------------------------------------
+
+db.createRole({role: "candidateRole",
+ privileges:
+[{
+resource:{db: "CandidateDB",collection: ""},
+actions:[ "update", "find", "insert"]
+}],
+roles:[]
+})
+--------------------------------------------OR-----------------------------------------------------------------------------------------------
+
+db.createRole(
+   {
+     role: "GCPBQ",
+     privileges:[
+       { resource: {db : "CandidateDB",collection: "GCPBQ"},
+        actions:[ "update", "find", "insert", "remove"]
+}],
+roles:[]
+})
+------------------------------------------------OR-------------------------------------------------------------------------------------------------
+Added Inbulit to a Custom Role
+
+db.createRole(
+   {
+     role: "GCPBQ",
+     privileges:[
+       { resource: {db : "CandidateDB", collection : "GCPBQ"},
+        actions:[ "update", "find", "insert", "remove"],
+  
+}],
+roles:[{ role: "read", db: "CandidateDB"}]         ----------------------Use this for pass Inbulit Role in a Custom Role
+})
+----------------------------------------------------------------------------------------------------------------------------------------------------
+
+db.createRole(
+{
+	"role" : "prateek",
+	"privileges" : [
+		{
+			"resource" : {
+				"db" : "HitechDB",
+				"collection" : "Candidate2"
+			},
+			"actions" : [
+				"update",
+				"find",
+				"insert",
+				"remove"
+			]
+		}
+	],
+	"roles" : [
+		{
+			"role" : "read",
+			"db" : "HitechDB"
+		}
+	]
+})
+-------------------------------------------------------------------------------------------------------------------------------------------------
+Create User Using User define role.
+
+db.createUser(
+  {
+    user: "Candidate",
+    pwd: "tech!123",
+    roles: [ { role: "read", db: "CandidateDB" },
+	     { role: "candidateRole", db: "CandidateDB" }  ]
+ }
+)
+--------------------------------------------------------------------------------------------------------------------------------------------------
+db.createUser(
+  {
+    user: "GCPBQ",
+    pwd: "cloud!123",
+    roles: [ 
+             { role: "readWrite", db: "admin", collection: "GCPBQ"  },
+           ],
+  }
+);
+
+
+------------------------------------------------------------------------------------------------------------------------------------------------
+Use Sort Command
+
+db.Candidate.find({"LastUpdateDate": {"$gt": "2017-07-13" , "$lt": "2017-08-25"}}).count()
+
+db.getCollection('Candidate').find({"LastUpdateDate":{"$lt":"2017-07-13"}}).limit(1)
+
+-----------------------------------------------------------------------------------------------------------------------------------------------
+Use Sort Command
+
+db.Candidate.find({},{"canId":1,_id:0}).sort({"candId":-1})
+
+db.getCollection('Candidate').find({}).sort({canId:-1})
+
+------------------------------------------------------------------------------------------------------------------------------------------------
+Find command using custom parameters
+
+db.Candidate.find({},{"canId":1,_id:0,"html":1,"candidate_name":1})
+
+db.Candidate.find({"canId":2452914},{"canId":1,_id:0,"html":1,"candidate_name":1})
+
+-------------------------------------------------------------------------------------------------------------------------------------------------
+db.Document.find().sort({_id:-1}).limit(10)
+
+-------------------------------------------------------------------------------------------------------------------------------------------------
+To Take MongoDB Full Database Backup:
+mongodump -h 192.168.1.239:27017 -u "admin" -p cool@123 --out C:\dump
+
+-------------------------------------------------------------------------------------------------------------------------------------------------
+To Create index
+
+db.AttachedResume.createIndex({attachedId:1},{unique:true})  --------------------------> Create Unique Index
+OR
+db.getCollection("EMLFile").createIndex({ "emilId": 1 }, { "name": "emailId", "unique": true, "background": true })
+
+
+db.Candidate.createIndex( { email: 1 })  ----------------------------------------------> Create only Index
+OR
+db.getCollection("EMLFile").createIndex({ "sentDate": 1 }, { "name": "sentDate", "background": true })
+
+--------------------------------------------------------------------------------------------------------------------------------------------------
+To Check New Candidate
+
+db.getCollection('Candidate').find({"CreatedDate" : {$gte: "2017-09-01 00:00:00.0",$lte:"2017-09-01 23:59:59.0"}}).count()
+
+db.Candidate.find({"CreatedDate" : {$gte: "2017-09-15 00:00:00.0",$lte:"2017-09-15 23:59:59.0"}}).count()
+--------------------------------------------------------------------------------------------------------------------------------------------------
+To Update Exixting field into New/Another Field
+
+db.CollectionName.find({Exixting-Field-Name:{$exists: true}}).forEach( function (doc) {
+db.CollectionName.update({_id:doc._id},{$set: {"New-Field-Name":doc.Exixting-Field-Name}})
+});
+
+Note: doc is a Function Name (you use any name as function)
+
+Example:
+db.AttachedResume.find({resume:{$exists: true}}).forEach( function (doc) {
+db.AttachedResume.update({_id:doc._id},{$set: {"clientResume":doc.resume}})
+});
+
+--------------------------------------------------------------------------------------------------------------------------------------------------
+To Update Exixting field into New/Another Field
+
+db.Attach.find({resume:{$exists: true}}).forEach( function (doc) {
+db.Attach.update({_id:doc._id},{$set: {"clientResume":doc.resume,"clientDocType":doc.documentType}})
+});
+
+--------------------------------------------------------------------------------------------------------------------------------------------------
+
+db.getCollection('AutomatedResume').find({"createdDate" : {$gte: "2017-09-29 00:00:00",$lte: "2017-09-29 23:59:59"}}).sort({_id:-1}).limit(1)
+
+db.Candidate.find({CreatedDate:{$gte:"2017-09-29 00:00:00",$lte:"2017-09-29 23:59:59"},CreatedUserID:"1"}).count()
+--------------------------------------------------------------------------------------------------------------------------------------------------
+
+db.Candidate.find({ _id: { $in: [ObjectId("59a4a5ec3bb83a0c0c9dda04") ] } },{"education":1})
+
+----------------------------------------------------------------------------------------------------------------------------------------------------
+
+db.getCollection('Candidate').find({"canId" : 3208773},{"html.naukri.html":1,"html.monster.html":1})
+
+-----------------------------------------------------------------------------------------------------------------------------------------------------
+
+1.	Where Naukri Html Equal to Null :
+
+db.getCollection('Candidate').find({"fedrated" : "1","html.naukri.html":null}).count()
+
+2.	Where Naukri Html Equal to Null and Monster Html is not equal to null :
+
+db.getCollection('Candidate').find({"fedrated" : "1","html.naukri.html":null, "html.monster.html":{$ne:null,$ne:""}}).count()
+
+db.getCollection('Candidate').find({"fedrated" : "1","html.naukri.html":null, "html.monster.html":null,"html.linkedin.html":null,"resume.naukri":null,"resume.monster":null,"resume.linkedin":null})
+
+-------------------------------------------------------------------------------------------------------------------------------------------------------------
+TO Get Number of resume:
+
+Fedrated 0 - Monster
+Fedrated 1 - Naukri
+Fedrated 7 - LinkedIn
+Fedrated 9 - Destop Parsing
+
+db.getCollection('Candidate').find({"fedrated":"1","CreatedDate":{$gte: "2017-10-26 00:00:00",$lte:"2017-10-26 23:59:59"}}).count();
+db.getCollection('Candidate').find({"fedrated":"0","CreatedDate":{$gte: "2017-10-26 00:00:00",$lte:"2017-10-26 23:59:59"}}).count();
+db.getCollection('Candidate').find({"fedrated":"9","CreatedDate":{$gte: "2017-10-26 00:00:00",$lte:"2017-10-26 23:59:59"}}).count();
+db.getCollection('Candidate').find({"fedrated":"7","CreatedDate":{$gte: "2017-10-26 00:00:00",$lte:"2017-10-26 23:59:59"}}).count();
+-----------------------------------------------------------------------------------------------------------------------------------------------------------
+
+db.Techno.find().forEach( function (doc) {
+doc.EIM = NumberInt(doc.EIM); 
+db.Techno.save(doc);
+});
+
+-----------------------------------------------------------------------------------------------------------------------------------------------------------
+db.Techno.find( { "FirstName" : /^sunny$/i } );
+
+-------------------------------------------------------------------------------------------------------------------------------------------------------
+Remove Documents :
+
+db.Candidate.remove({canId:{$in:[3515513,
+3515857,
+3515958,
+3516336,
+3516438,
+3519047,
+3519168,
+3520967,
+3521623,
+3522196,
+3522247,
+3522259,
+3525457,
+3527956,
+3528836,
+3529495,
+3530177,
+3530415,
+3530655,
+3534222,
+3534549]}})
+---------------------------------------------------------------------------------------------------------------------------------------------
+
+db.CheckCurrentCompany.find( { $where: function() { return this.currentcompanyNaukri == this.accountName } } )
+
+db.CheckCurrentCompany.find({$where: "this.currentcompanyNaukri == this.accountName"})
+
+db.CheckCurrentCompany.find({currentcompanyNaukri:{$ne:null,$ne:""},accountName:{$ne:null,$ne:""},$where:function() {return this.currentcompanyNaukri == this.accountName} })
+
+db.getCollection('CheckCurrentCompany').find({$or: [ {  $where: "this.accountName==this.currentcompanyNaukri" }, { $where: "this.accountName==this.currentcompanyMonster" }, { $where: "this.accountName==this.currentcompanyLinkedIn" } ]  })
+
+db.getCollection('CheckCurrentCompany').find({"accountName": { $exists: true, $ne: null }, $or: [ {  $where: "this.accountName==this.currentcompanyNaukri" }, { $where: "this.accountName==this.currentcompanyMonster" }, { $where: "this.accountName==this.currentcompanyLinkedIn" } ]  })
+
+db.getCollection('Candidate').find({"fedrated" : "1","html.naukri.html":null, "html.monster.html":null,"html.linkedin.html":null,"resume.naukri":null,"resume.monster":null,"resume.linkedin":null}).count()
+-----------------------------------------------------------------------------------------------------------------------------------------
+Find Candidate who's Resume and HTML is equal to Null
+
+db.getCollection('Candidate').find({
+"CreatedDate":{$gte:"2017-11-10 00:00:00" , $lte:"2017-11-10 23:59:59"},
+"fedrated" : "0",
+"html.naukri.html":null, 
+"html.monster.html":null,
+"html.linkedin.html":null,
+"resume.naukri":null,
+"resume.monster":null,
+"resume.linkedin":null}).count()
+-------------------------------------------------------------------------------------------------------------------
+Remove Document According to Date
+
+db.Hitech_copy.remove({"StartDate" : {"$lte" : "2017-10-15"}})
